@@ -1,5 +1,3 @@
-[小白做毕设: 带大四小白做毕设，技术栈：SpringBoot + Vue (gitee.com)](https://gitee.com/xqnode/pure-design)
-
 软件版本
 
 - jdk 1.8
