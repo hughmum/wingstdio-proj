@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mu.mapper.MenuMapper">
+
+    <select id="selectMenusByAccount" resultType="String">
+        select mu.sys_menu.code
+        from mu.sys_user  join mu.sys_role on mu.sys_user.role=flag  join mu.sys_role_menu  on mu.sys_role.id =mu.sys_role_menu.role_id   join mu.sys_menu on mu.sys_role_menu.menu_id=mu.sys_menu.id
+        where mu.sys_user.account= #{account}
+    </select>
+    <select id="selectFatherPermissionsByAccount" resultType="com.mu.entity.Menu">
+        select mu.sys_menu.*
+        from mu.sys_user  join mu.sys_role on mu.sys_user.role=flag  join mu.sys_role_menu  on mu.sys_role.id =mu.sys_role_menu.role_id   join mu.sys_menu on mu.sys_role_menu.menu_id=mu.sys_menu.id
+        where mu.sys_user.account= #{account}  and pid is NULL  and is_aside = 1
+    </select>
+    <select id="selectSubPermissionsByFatherId" resultType="com.mu.entity.Menu">
+        select mu.sys_menu.*
+        from mu.sys_user  join mu.sys_role on mu.sys_user.role=flag  join mu.sys_role_menu  on mu.sys_role.id =mu.sys_role_menu.role_id   join mu.sys_menu on mu.sys_role_menu.menu_id=mu.sys_menu.id
+        where pid = #{fatherId} and is_aside = 1  and mu.sys_user.account = #{account}
+</select>
+</mapper>

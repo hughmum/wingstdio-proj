@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mu.mapper.DeviceMapper">
+<!--    返回结果集合，id 是唯一标识，type 是结果类型-->
+    <resultMap id="DeviceDTOMap" type="com.mu.controller.dto.DeviceDTO">
+        <id column="id" jdbcType="INTEGER"  property="id"/>
+        <result column="device_name" jdbcType="VARCHAR" property="deviceName"/>
+        <result column="price" jdbcType="VARCHAR" property="price"/>
+        <result column="owner_id" jdbcType="INTEGER" property="ownerId"/>
+        <result column="place" jdbcType="VARCHAR" property="place"/>
+       <!--一对一查询-->
+        <association property="ownerName" javaType="string" select="selectTheOwnerName" column="owner_id">
+
+        </association>
+        <!--实现连表查询 property 是实体对象，id 是传递的参数，select 是查询语句-->
+        <collection property="filesList"  javaType="ArrayList" ofType="com.mu.entity.Files" select="selectAllList" column="id">
+<!--            <id column="id" property="id" jdbcType="INTEGER"/>-->
+<!--            <result column="device_id" property="deviceId" jdbcType="INTEGER"/>-->
+<!--            <result column="url" property="url" jdbcType="VARCHAR"/>-->
+        </collection>
+    </resultMap>
+
+    <select  id="pageAllData" resultMap="DeviceDTOMap">
+        select
+        DISTINCT mu.sys_device.*
+        from
+        mu.sys_device
+        left join mu.sys_file on mu.sys_file.device_id = mu.sys_device.id
+        <where>
+            <if test="deviceName!=null">
+                device_name like concat('%',#{deviceName},'%')
+            </if>
+            <if test="start!=null and end!=null">
+              and  price  between #{start} and #{end}
+            </if>
+        </where>
+    </select>
+
+<!--    子查询-->
+<!--    子查询的resultMap-->
+    <resultMap id="filesMap" type="com.mu.entity.Files">
+    </resultMap>
+
+    <select id="selectAllList" resultMap="filesMap">
+        select * from mu.sys_file where mu.sys_file.device_id=#{id}
+    </select>
+
+    <select id="selectTheOwnerName" resultType="string">
+        select mu.sys_user.username from mu.sys_user where  mu.sys_user.id = #{ownerId}
+    </select>
+
+</mapper>

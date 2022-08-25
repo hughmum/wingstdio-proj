@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mu.mapper.BorrowRecordMapper">
+
+    <resultMap id="BorrowRecordMap" type="com.mu.entity.BorrowRecord">
+        <id column="id" jdbcType="INTEGER"  property="id"/>
+        <result column="device_id" jdbcType="INTEGER"  property="deviceId"/>
+        <result column="borrow_person_id" jdbcType="INTEGER"  property="borrowPersonId"/>
+        <result column="teacher_id" jdbcType="INTEGER"  property="teacherId"/>
+        <result column="administrator_id" jdbcType="INTEGER"  property="administratorId"/>
+        <result column="administrator_review" jdbcType="VARCHAR"  property="administratorReview"/>
+        <result column="teacher_review" jdbcType="VARCHAR"  property="teacherReview"/>
+        <result column="device_name" jdbcType="VARCHAR" property="deviceName"/>
+        <result column="borrow" jdbcType="VARCHAR" property="deviceName"/>
+        <result column="borrow_reason" jdbcType="VARCHAR" property="borrowReason"/>
+        <result column="refuse_reason" jdbcType="VARCHAR" property="refuseReason"/>
+        <result column="owner_id" jdbcType="INTEGER" property="ownerId"/>
+        <result column="owner_review" jdbcType="VARCHAR" property="ownerReview"/>
+        <result column="refusal_id" jdbcType="INTEGER" property="refusalId"/>
+
+        <!--一对一查询-->
+        <association property="borrowPerson" javaType="string" select="selectBorrowPerson" column="borrow_person_id">
+        </association>
+
+        <association property="ownerName" javaType="string" select="selectOwnerName" column="owner_id">
+        </association>
+
+        <association property="refusePersonName" javaType="string" select="selectRefusePersonName" column="refusal_id">
+        </association>
+
+        <association property="state" javaType="string" select="selectstate" column="device_id">
+        </association>
+
+        <!--实现连表查询 property 是实体对象，id 是传递的参数，select 是查询语句-->
+        <collection property="filesList"  javaType="ArrayList" ofType="com.mu.entity.Files" select="selectAllList" column="device_id">
+            <!--            <id column="id" property="id" jdbcType="INTEGER"/>-->
+            <!--            <result column="device_id" property="deviceId" jdbcType="INTEGER"/>-->
+            <!--            <result column="url" property="url" jdbcType="VARCHAR"/>-->
+        </collection>
+
+    </resultMap>
+
+    <!--1.查询所有记录-->
+    <select id="pageAllData" resultMap="BorrowRecordMap">
+        select
+        DISTINCT mu.borrow_record.*
+        from mu.borrow_record
+        left join mu.sys_file on mu.sys_file.device_id = mu.borrow_record.device_id
+        where (mu.borrow_record.teacher_id = #{examinePersonId} and  mu.borrow_record.teacher_review IS NULL  and mu.borrow_record.failed = '待批准')
+           or (mu.borrow_record.owner_id =#{examinePersonId} and mu.borrow_record.teacher_review = 'agree' and mu.borrow_record.owner_review IS NULL and mu.borrow_record.failed = '待批准')
+           or(mu.borrow_record.administrator_id=#{examinePersonId} and mu.borrow_record.teacher_review = 'agree' and mu.borrow_record.owner_review = 'agree' and  mu.borrow_record.administrator_review IS NULL  and mu.borrow_record.failed = '待批准')
+    </select>
+
+
+    <!--2。查询所有自己的记录-->
+    <select id="pageMyAllData" resultMap="BorrowRecordMap">
+        select
+        DISTINCT mu.borrow_record.*
+        from mu.borrow_record
+        left join mu.sys_file on mu.sys_file.device_id = mu.borrow_record.device_id
+        where mu.borrow_record.borrow_person_id = #{borrowPersonId}
+    </select>
+
+    <!--子查询-->
+    <resultMap id="filesMap" type="com.mu.entity.Files">
+    </resultMap>
+    <!--子查询查询出设备所有的文件信息-->
+    <select id="selectAllList" resultMap="filesMap">
+        select *
+        from mu.sys_file where mu.sys_file.device_id = #{device_id};
+    </select>
+
+    <!--一对一查询-->
+    <select id="selectBorrowPerson" resultType="string">
+        select mu.sys_user.username from mu.sys_user where id = #{borrow_person_id}
+    </select>
+
+    <select id="selectOwnerName" resultType="string">
+        select mu.sys_user.username from mu.sys_user where id = #{owner_id}
+    </select>
+
+    <select id="selectstate" resultType="string">
+        select mu.sys_device.state from mu.sys_device where id = #{device_id}
+    </select>
+
+    <select id="selectRefusePersonName" resultType="string">
+        select mu.sys_user.username from mu.sys_user where id = #{id}
+    </select>
+
+
+
+
+</mapper>
